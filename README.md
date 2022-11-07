@@ -1,16 +1,4 @@
-# vv_os
+# vv-os
 
-A new Flutter project.
-
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Это порт VV-OS для операционной системы Android. Программа находится на стадии разработки, в репозитории представлены aplha-версии продукта. Представленные пре-релизы могут не иметь ничего общего с финальным продуктом. Продукт распространяется под лицензией MIT.
+VV не несет ответственности за работоспособность ваших устройств или качество продукта.
