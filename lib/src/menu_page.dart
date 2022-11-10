@@ -29,7 +29,6 @@ class _MenuPageState extends State<MenuPage> {
                   Container(
                       margin: const EdgeInsets.fromLTRB(10, 45, 10, 10),
                       height: k * 0.125,
-                      decoration: BoxDecoration(color: Color(prefs?.getInt('backgroundColor') ?? 0xFF000000)),
                       child: TextField(
                         decoration: InputDecoration(
                           prefixIcon: Icon(Icons.search, color: Color(prefs?.getInt('accentColor') ?? 0xFF1AD06F)),
@@ -53,42 +52,12 @@ class _MenuPageState extends State<MenuPage> {
                           });
                         },
                       )),
-                    AppScreen(0)
+                      AppScreen()
                 ]))));
   }
 }
 
-class MenuWithSearchBar extends StatefulWidget {
-  List<Application>? apps;
-
-  MenuWithSearchBar(this.apps, {super.key});
-
-  @override
-  State<MenuWithSearchBar> createState() => _MenuWithSearchBarState(apps);
-}
-
 String? query;
-
-class _MenuWithSearchBarState extends State<MenuWithSearchBar> {
-  List<Application>? apps;
-
-  _MenuWithSearchBarState(this.apps);
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-        children: List.generate(apps?.length ?? 0, (index) {
-      if (apps![index]
-          .appName
-          .toLowerCase()
-          .contains(query?.toLowerCase() ?? '')) {
-        return AppCard(apps![index]);
-      } else {
-        return const SizedBox();
-      }
-    }));
-  }
-}
 
 class AppCard extends StatefulWidget {
   final Application app;
@@ -206,18 +175,13 @@ class _AppCardState extends State<AppCard> {
 }
 
 class AppScreen extends StatefulWidget {
-  int start;
-  AppScreen(this.start, {super.key});
+  AppScreen({super.key});
 
   @override
-  State<AppScreen> createState() => _AppScreenState(start);
+  State<AppScreen> createState() => _AppScreenState();
 }
 
 class _AppScreenState extends State<AppScreen> {
-  int start;
-
-  _AppScreenState(this.start);
-
   @override
   Widget build(BuildContext context) {
     var k = getProportionalyFactor(context);
@@ -231,7 +195,13 @@ class _AppScreenState extends State<AppScreen> {
           if (snapshot.connectionState == ConnectionState.done) {
             var apps = snapshot.data;
 
-            return ListView(children: List.generate(apps?.length ?? 0, (index) => AppCard(apps![index])));
+            return ListView(children: List.generate(apps?.length ?? 0, (index) {
+              if (apps![index].appName.toLowerCase().contains((query ?? '').toLowerCase())) {
+                return AppCard(apps[index]);
+              } else {
+                return const SizedBox();
+              }
+            }));
           } else {
             return Center(child: CircularProgressIndicator(color: Color(prefs?.getInt('accentColor') ?? 0xFF1AD06F)));
           }
