@@ -1,9 +1,9 @@
-name: vv_os
-description: Great Flutter launcher for Android
+name: VV_OS
+description: Flutter launcher for Android
 
 publish_to: 'none'
 
-version: 3.3.5
+version: 3.5.6
 
 environment:
   sdk: '>=2.18.4 <3.0.0'

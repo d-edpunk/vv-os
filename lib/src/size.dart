@@ -12,4 +12,3 @@ double getProportionalyFactor(BuildContext context) {
   var width = getWidth(context), height = getHeight(context);
   return width < height ? width : height;
 }
-

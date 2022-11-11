@@ -5,7 +5,10 @@ import 'src/menu_page.dart';
 
 void main() {
   _initPrefs();
-  runApp(MaterialApp(home: (prefs?.getBool('openMenuByButton') ?? true) ? HomePage() : PageView(children: [HomePage(), MenuPage()])));
+  runApp(MaterialApp(
+      home: (prefs?.getBool('openMenuByButton') ?? true)
+          ? HomePage()
+          : PageView(children: [HomePage(), MenuPage()])));
 }
 
 SharedPreferences? prefs;
