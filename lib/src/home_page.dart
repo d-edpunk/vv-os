@@ -23,13 +23,13 @@ class _HomePageState extends State<HomePage> {
           mainAxisAlignment: (prefs?.getBool('panelPositionRight') ?? true)
               ? MainAxisAlignment.end
               : MainAxisAlignment.start,
-          children: [Panel()]),
+          children: const [Panel()]),
     ));
   }
 }
 
 class Panel extends StatefulWidget {
-  Panel({super.key});
+  const Panel({super.key});
 
   @override
   State<Panel> createState() => _PanelState();
@@ -90,18 +90,17 @@ class _PanelState extends State<Panel> {
         f(packageName, i);
       }
     }
-    print('$result');
     return Column(children: result);
   }
 }
 
 class PanelButton extends StatefulWidget {
-  IconData? icon;
-  Image? image;
-  void Function() onPressed;
-  void Function()? onLongPress;
+  final IconData? icon;
+  final Image? image;
+  final void Function() onPressed;
+  final void Function()? onLongPress;
 
-  PanelButton(
+  const PanelButton(
       {required this.onPressed,
       this.icon,
       this.image,

@@ -10,6 +10,8 @@ var _streamController = StreamController();
 class AppsList extends StatefulWidget {
   List<Application> apps = [];
 
+  AppsList({super.key});
+
   Future<void> init({bool force = false}) async {
     if (apps.isEmpty || force) {
       apps = await DeviceApps.getInstalledApplications(
@@ -80,7 +82,7 @@ class _AppsListState extends State<AppsList> {
 class AppCard extends StatefulWidget {
   Application app;
 
-  AppCard(this.app);
+  AppCard(this.app, {super.key});
 
   @override
   State<AppCard> createState() => _AppCardState(app);
@@ -128,9 +130,9 @@ class _AppCardState extends State<AppCard> {
                                         0xFFFFFFFF)))
                           ])
                     : Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                            ElevatedButton(
+                            /*ElevatedButton(
                                 style: ElevatedButton.styleFrom(
                                     backgroundColor: Color(
                                         prefs?.getInt('accentColor') ??
@@ -148,7 +150,7 @@ class _AppCardState extends State<AppCard> {
                                 child: Container(
                                     margin: const EdgeInsets.all(5),
                                     child:
-                                        const Icon(Icons.bookmark_outlined))),
+                                        const Icon(Icons.bookmark_outlined))),*/
                             ElevatedButton(
                                 style: ElevatedButton.styleFrom(
                                     backgroundColor: Color(

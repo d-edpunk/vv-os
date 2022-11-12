@@ -7,8 +7,8 @@ void main() {
   _initPrefs();
   runApp(MaterialApp(
       home: (prefs?.getBool('openMenuByButton') ?? true)
-          ? HomePage()
-          : PageView(children: [HomePage(), MenuPage()])));
+          ? const HomePage()
+          : PageView(children: const [HomePage(), MenuPage()])));
 }
 
 SharedPreferences? prefs;
