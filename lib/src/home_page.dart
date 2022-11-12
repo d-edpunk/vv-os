@@ -23,7 +23,10 @@ class _HomePageState extends State<HomePage> {
           mainAxisAlignment: (prefs?.getBool('panelPositionRight') ?? true)
               ? MainAxisAlignment.end
               : MainAxisAlignment.start,
-          children: const [Panel()]),
+          children: [
+            Column(children: const [TimeWidget()]),
+            const Panel()
+          ]),
     ));
   }
 }
@@ -138,5 +141,88 @@ class _PanelButtonState extends State<PanelButton> {
               Icon(icon ?? Icons.error,
                   color: Color(prefs?.getInt('fontColor') ?? 0xFFFFFFFF)),
         ));
+  }
+}
+
+class TimeWidget extends StatefulWidget {
+  const TimeWidget({super.key});
+
+  @override
+  State<TimeWidget> createState() => _TimeWidgetState();
+}
+
+class _TimeWidgetState extends State<TimeWidget> {
+  String time = '';
+  String date = '';
+  Stream? timer;
+  DateTime _current = DateTime.now();
+
+  _TimeWidgetState() {
+    timer = Stream.periodic(const Duration(seconds: 1), (i) {
+      _current = _current.add(const Duration(seconds: 1));
+      return _current;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+        margin: const EdgeInsets.symmetric(vertical: 40, horizontal: 30),
+        child: Column(children: [
+          Text(time,
+              style: TextStyle(
+                  color: Color(prefs?.getInt('fontColor') ?? 0xFFFFFFFF),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 50)),
+          Text(date,
+              style: TextStyle(
+                color: Color(prefs?.getInt('fontColor2') ?? 0xFFEEEEEE),
+                fontWeight: FontWeight.bold,
+                fontSize: 25,
+              ))
+        ]));
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    timer?.listen((event) {
+      var now = DateTime.now();
+
+      var hour = now.hour.toString();
+      hour = hour.length == 1 ? '0$hour' : hour;
+
+      var min = now.minute.toString();
+      min = min.length == 1 ? '0$min' : min;
+
+      String? sec;
+      if (prefs?.getBool('showSeconds') ?? true) {
+        sec = now.second.toString();
+        sec = sec.length == 1 ? ':0$sec' : sec;
+      }
+
+      var day = now.day.toString();
+      day = day.length == 1 ? '0$day' : day;
+      var monthes = <String>[
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec'
+      ];
+      var month = monthes[now.month - 1];
+      var year = now.year;
+      setState(() {
+        time = '$hour:$min${sec ?? ''}';
+        date = '$day $month $year';
+      });
+    });
   }
 }
