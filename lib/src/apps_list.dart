@@ -1,11 +1,14 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:device_apps/device_apps.dart';
-import '../main.dart' show prefs;
+import 'settings_page.dart';
 import 'size.dart';
+import 'config.dart';
 
 var appsList = AppsList();
 var _streamController = StreamController();
+
+var _updateApps = StreamController();
 
 class AppsList extends StatefulWidget {
   List<Application> apps = [];
@@ -23,10 +26,21 @@ class AppsList extends StatefulWidget {
   }
 
   Future<void> uninstall(String packageName) async {
+    Future<void> unpinApp() async {
+      var app = await DeviceApps.getApp(packageName);
+      if (app != null) {
+        if (config.isAppPinned(app)) {
+          config.unpinApp = app;
+        }
+      }
+    }
+
     var app = await DeviceApps.getApp(packageName);
     if (app != null) {
       apps.add(app);
+      unpinApp();
       _streamController.sink.add(true);
+      _updateApps.sink.add('uninstalled');
     }
   }
 
@@ -35,6 +49,7 @@ class AppsList extends StatefulWidget {
       if (apps[i].packageName == packageName) {
         apps.removeAt(i);
         _streamController.sink.add(true);
+        _updateApps.sink.add('installed');
         break;
       }
     }
@@ -56,11 +71,12 @@ class _AppsListState extends State<AppsList> {
     return apps.isEmpty
         ? Center(
             child: CircularProgressIndicator(
-                color: Color(prefs?.getInt('accentColor') ?? 0xFF1AD06F)))
+                color: config.getColor(config.accentColor)))
         : GridView.count(
             crossAxisCount: 2,
-            children:
-                List.generate(apps.length, (index) => AppCard(apps[index])));
+            children: List.generate(apps.length, (index) {
+              return AppCard(apps[index]);
+            }));
   }
 
   @override
@@ -102,12 +118,19 @@ class _AppCardState extends State<AppCard> {
         margin: const EdgeInsets.all(15),
         child: ElevatedButton(
             style: ElevatedButton.styleFrom(
-                backgroundColor:
-                    Color(prefs?.getInt('backgroundColor2') ?? 0xFF222222)),
+                backgroundColor: config.getColor(config.backgroundColor2)),
             onPressed: () {
               if (!_open) {
-                app.openApp();
                 Navigator.pop(context);
+                if (app.packageName == 'vv_os.leraxxx.ru') {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const SettingsPage()));
+                } else {
+                  app.openApp();
+                }
+                // context.watch<Query>().query = null;
               }
             },
             onLongPress: () {
@@ -126,39 +149,33 @@ class _AppCardState extends State<AppCard> {
                                 width: k / 2 - 100),
                             Text(app.appName,
                                 style: TextStyle(
-                                    color: Color(prefs?.getInt('fontColor') ??
-                                        0xFFFFFFFF)))
+                                    color: config.getColor(config.fontColor))),
                           ])
                     : Column(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                            /*ElevatedButton(
+                            ElevatedButton(
                                 style: ElevatedButton.styleFrom(
-                                    backgroundColor: Color(
-                                        prefs?.getInt('accentColor') ??
-                                            0xFF1AD06F),
+                                    backgroundColor:
+                                        config.getColor(config.accentColor),
                                     shadowColor: const Color(0x00000000)),
                                 onPressed: () {
-                                  var count =
-                                      prefs?.getInt('pinnedAppsCount') ?? 0;
-                                  prefs?.setString(
-                                      'pinnedApp${count + 1}', app.packageName);
-                                  prefs?.setInt('pinnedAppsCount', count + 1);
+                                  config.pinApp = app;
                                   _open = false;
-                                  Navigator.pop(context);
+                                  // context.watch<Query>().query = null;
                                 },
                                 child: Container(
                                     margin: const EdgeInsets.all(5),
                                     child:
-                                        const Icon(Icons.bookmark_outlined))),*/
+                                        const Icon(Icons.bookmark_outlined))),
                             ElevatedButton(
                                 style: ElevatedButton.styleFrom(
-                                    backgroundColor: Color(
-                                        prefs?.getInt('accentColor') ??
-                                            0xFF1AD06F),
+                                    backgroundColor:
+                                        config.getColor(config.accentColor),
                                     shadowColor: const Color(0x00000000)),
                                 onPressed: () {
                                   app.openSettingsScreen();
+                                  // context.watch<Query>().query = null;
                                   Navigator.pop(context);
                                 },
                                 child: Container(
@@ -166,9 +183,8 @@ class _AppCardState extends State<AppCard> {
                                     child: const Icon(Icons.settings))),
                             ElevatedButton(
                                 style: ElevatedButton.styleFrom(
-                                    backgroundColor: Color(
-                                        prefs?.getInt('accentColor') ??
-                                            0xFF1AD06F),
+                                    backgroundColor:
+                                        config.getColor(config.accentColor),
                                     shadowColor: const Color(0x00000000)),
                                 onPressed: () {
                                   app.uninstallApp();

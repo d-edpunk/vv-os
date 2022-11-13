@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:device_apps/device_apps.dart';
 import 'menu_page.dart';
+import 'settings_page.dart';
 import 'size.dart';
-import '../main.dart' show prefs;
+import 'config.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -20,14 +21,24 @@ class _HomePageState extends State<HomePage> {
           image: DecorationImage(
               image: AssetImage('assets/wallpaper.jpg'), fit: BoxFit.cover)),
       child: Row(
-          mainAxisAlignment: (prefs?.getBool('panelPositionRight') ?? true)
+          mainAxisAlignment: config.panelPositionRight
               ? MainAxisAlignment.end
               : MainAxisAlignment.start,
           children: [
+            config.panelPositionRight ? const SizedBox() : const Panel(),
             Column(children: const [TimeWidget()]),
-            const Panel()
+            config.panelPositionRight ? const Panel() : const SizedBox()
           ]),
     ));
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    config.settings.stream.listen((event) {
+      print('updated');
+      setState(() {});
+    });
   }
 }
 
@@ -43,13 +54,12 @@ class _PanelState extends State<Panel> {
   Widget build(BuildContext context) {
     var k = getProportionalyFactor(context);
     return Container(
-        decoration: BoxDecoration(
-          color: Color(prefs?.getInt('panelColor') ?? 0xCC000000),
-        ),
+        decoration: BoxDecoration(color: config.getColor(config.panelColor)),
         width: k * 0.2,
         height: getHeight(context),
         child: Column(mainAxisAlignment: MainAxisAlignment.end, children: [
-          (prefs?.getBool('openMenuByButton') ?? true)
+          config.panelPositionBottom ? getPinnedApps() : const SizedBox(),
+          config.openMenuByButton
               ? PanelButton(
                   icon: Icons.menu,
                   onPressed: () {
@@ -57,43 +67,43 @@ class _PanelState extends State<Panel> {
                         context,
                         MaterialPageRoute(
                             builder: (context) => const MenuPage()));
+                  },
+                  onLongPress: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const SettingsPage()));
                   })
               : SizedBox(height: k * 0.15 + 20),
-          getPinnedApps(),
+          config.panelPositionBottom ? const SizedBox() : getPinnedApps(),
         ]));
   }
 
   Widget getPinnedApps() {
     var result = <Widget>[];
-    Future<void> f(String packageName, int id) async {
-      if (await DeviceApps.isAppInstalled(packageName)) {
-        result.add(PanelButton(
-          image: Image.memory(
-              (DeviceApps.getApp(packageName) as ApplicationWithIcon).icon),
+
+    for (var el in config.pinnedApps) {
+      result.add(PanelButton(
+          image: Image.memory((el as ApplicationWithIcon).icon),
           onPressed: () {
-            DeviceApps.openApp(packageName);
+            el.openApp();
           },
           onLongPress: () {
-            for (var i = id; i < (prefs?.getInt('pinnedAppsCount') ?? 0); i++) {
-              prefs?.setString(
-                  'pinnedApp$i', prefs?.getString('pinnedApp${i + 1}') ?? '');
-            }
-
-            var newCount = (prefs?.getInt('pinnedAppsCount') ?? 1) - 1;
-            prefs?.remove('pinnedApp$newCount');
-            prefs?.setInt('pinnedAppsCount', newCount);
-          },
-        ));
-      }
+            config.unpinApp = el;
+          }));
     }
 
-    for (var i = 1; i <= (prefs?.getInt('pinnedAppsCount') ?? 0); i++) {
-      var packageName = prefs?.getString('pinnedApp$i');
-      if (packageName != null) {
-        f(packageName, i);
-      }
-    }
     return Column(children: result);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    config.appsPinning.stream.listen((event) {
+      if (event == 'pinned' || event == 'unpinned') {
+        setState(() {});
+      }
+    });
   }
 }
 
@@ -132,15 +142,13 @@ class _PanelButtonState extends State<PanelButton> {
         margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
         height: k * 0.15,
         child: ElevatedButton(
-          style: ElevatedButton.styleFrom(
-              backgroundColor:
-                  Color(prefs?.getInt('backgroundColor2') ?? 0xFF222222)),
-          onPressed: onPressed,
-          onLongPress: onLongPress,
-          child: image ??
-              Icon(icon ?? Icons.error,
-                  color: Color(prefs?.getInt('fontColor') ?? 0xFFFFFFFF)),
-        ));
+            style: ElevatedButton.styleFrom(
+                backgroundColor: config.getColor(config.backgroundColor2)),
+            onPressed: onPressed,
+            onLongPress: onLongPress,
+            child: image ??
+                Icon(icon ?? Icons.error,
+                    color: config.getColor(config.fontColor))));
   }
 }
 
@@ -171,12 +179,12 @@ class _TimeWidgetState extends State<TimeWidget> {
         child: Column(children: [
           Text(time,
               style: TextStyle(
-                  color: Color(prefs?.getInt('fontColor') ?? 0xFFFFFFFF),
+                  color: config.getColor(config.fontColor),
                   fontWeight: FontWeight.bold,
                   fontSize: 50)),
           Text(date,
               style: TextStyle(
-                color: Color(prefs?.getInt('fontColor2') ?? 0xFFEEEEEE),
+                color: config.getColor(config.fontColor),
                 fontWeight: FontWeight.bold,
                 fontSize: 25,
               ))
@@ -196,9 +204,9 @@ class _TimeWidgetState extends State<TimeWidget> {
       min = min.length == 1 ? '0$min' : min;
 
       String? sec;
-      if (prefs?.getBool('showSeconds') ?? true) {
+      if (config.showSeconds) {
         sec = now.second.toString();
-        sec = sec.length == 1 ? ':0$sec' : sec;
+        sec = sec.length == 1 ? ':0$sec' : ':$sec';
       }
 
       var day = now.day.toString();

@@ -1,17 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'src/home_page.dart';
 import 'src/menu_page.dart';
+import 'src/config.dart';
 
 void main() {
-  _initPrefs();
-  runApp(MaterialApp(
-      home: (prefs?.getBool('openMenuByButton') ?? true)
-          ? const HomePage()
-          : PageView(children: const [HomePage(), MenuPage()])));
+  runApp(const MaterialApp(home: App()));
 }
 
-SharedPreferences? prefs;
-Future<void> _initPrefs() async {
-  prefs = await SharedPreferences.getInstance();
+class App extends StatefulWidget {
+  const App({super.key});
+
+  @override
+  State<App> createState() => _AppState();
+}
+
+class _AppState extends State<App> {
+  @override
+  Widget build(BuildContext context) {
+    return config.openMenuByButton
+        ? const HomePage()
+        : PageView(children: const [HomePage(), MenuPage()]);
+  }
 }
